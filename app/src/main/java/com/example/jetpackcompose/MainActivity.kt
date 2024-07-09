@@ -268,7 +268,7 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                         //Input chip
-                        InputChipExample("Tanushree")
+                        InputChipExample("Tanushree ")
 
                     }
                     //Slider
