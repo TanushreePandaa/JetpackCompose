@@ -1,9 +1,12 @@
 package com.example.jetpackcompose
 
 
+import android.media.Rating
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,11 +37,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -47,6 +54,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.jetpackcompose.ui.theme.JetpackComposeTheme
+import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
 import kotlin.math.floor
 import kotlin.reflect.KProperty
 
@@ -55,70 +66,76 @@ class MainActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
         // enableEdgeToEdge()
         setContent {
-            //JetpackComposeTheme {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                CounterView()
+            val productVM : ProductViewModel by viewModels()
+            JetpackComposeTheme {
+                Column(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = {
+                        productVM.fetchProducts()
+                    }) {
+                        Text(text = "Click to make an API call")
+
+                    }
+
+                }
             }
         }
     }
 }
+//Model class
+data class Product(
+    val id: Int,
+    val title: String,
+    val price: Double,
+    val description: String,
+    val category: String,
+    val image: String,
+    val rating: Rating
+)
+data class Rating (
+    val rate: Double,
+    val count: Int
+)
+interface ApiService {
+    @GET("products")
+    suspend fun getProducts(): List<Product>
+}
+object RetrofitClient {
+    private const val BASE_URL = "https://fakestoreapi.com/"
+    val apiService: ApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+    }
+}
+class ProductRepository(private val apiService: ApiService) {
+    suspend fun getProducts(): List<Product> {
+        return apiService.getProducts()
+    }
+}
+class ProductViewModel: ViewModel() {
+    private val _products = MutableLiveData<List<Product>>() //products->live data
+    val products: LiveData<List<Product>> get() = _products // actual products which will be exposed to UI
 
-    @Composable
-    fun CounterView(counterVM: CounterViewModel = viewModel()) {
-        val intContent = GenericClass(120)
-        val stringContent = GenericClass("Hello Tanu")
-        val counterState = counterVM.counter.value
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(text = "Current counter value: ${counterState.count}")
-            Row {
-                Button(onClick = {
-                    counterVM.incrementCounter()
-                }) {
-                    Text(text = "Increment Value")
-                }
-                Spacer(modifier = Modifier.width(20.dp))
-                Button(onClick = {
-                    counterVM.decrementCounter()
-                }) {
-                    Text(text = "Decrement Value")
-                }
-                Spacer(modifier = Modifier.width(20.dp))
-            }
-            Button(onClick = {
-                counterVM.login()
-                println("${intContent.content}, ${stringContent.content}")
-            }) {
-                Text(text = "Login Button")
+    private val repository =
+        ProductRepository(RetrofitClient.apiService) //repository get the objects of API service
+
+    fun fetchProducts() {
+        viewModelScope.launch {
+            try {
+                val productList = repository.getProducts()
+                _products.postValue(productList)
+                println("API DATA CALLED: $productList")
+            } catch (e: Exception) {
+
             }
         }
     }
-//Model Class
-data class Counter(val count: Int)
-data class User(val username: String, val password: String)
-
-//ViewModel Class
-class CounterViewModel : ViewModel() {
-    private val _counter = mutableStateOf(Counter(0))
-    val counter: State<Counter> = _counter
-
-    fun incrementCounter() {
-        _counter.value = Counter(_counter.value.count + 1)
-    }
-
-    fun decrementCounter() {
-        _counter.value = Counter(_counter.value.count - 1)
-    }
-    fun resetCounter(){
-        _counter.value = Counter(0)
-    }
-    fun login(){
-        //login logic
-    }
 }
-class GenericClass<T>(var content: T)
