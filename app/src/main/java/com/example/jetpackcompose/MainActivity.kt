@@ -34,15 +34,15 @@ class MainActivity: ComponentActivity() {
             val productVM : ProductViewModel by viewModels()
             val userVM: UserViewModel by viewModels()
             JetpackComposeTheme {
-               productScreen(productVM = productVM)
-            // UserScreen(userVM = userVM)
-                Column(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
+               //productScreen(productVM = productVM)
+             UserScreen(userVM = userVM)
+//                Column(
+//                    modifier = Modifier
+//                        .padding(20.dp)
+//                        .fillMaxSize(),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.Center
+//                ) {
 //                     Button(onClick = {
 //                        productVM.fetchProducts()
 //                    }) {
@@ -54,5 +54,4 @@ class MainActivity: ComponentActivity() {
             }
         }
     }
-}
 
