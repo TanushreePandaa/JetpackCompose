@@ -75,4 +75,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation(("androidx.browser:browser:1.8.0"))
+    implementation("com.google.firebase:firebase-auth")
 }
