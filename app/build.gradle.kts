@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -77,4 +78,5 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation(("androidx.browser:browser:1.8.0"))
     implementation("com.google.firebase:firebase-auth")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
