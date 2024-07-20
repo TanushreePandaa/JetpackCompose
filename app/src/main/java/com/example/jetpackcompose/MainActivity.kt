@@ -38,6 +38,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import java.util.UUID
+import android.content.Intent
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.view.View
+import android.widget.TextView
 import android.annotation.SuppressLint
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -46,36 +53,30 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var webView: WebView
+    @HighLightClick(url = "https://www.amazon.in")
+    private lateinit var highlightedText: TextView
 
-    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        try {
-            webView = findViewById(R.id.webView)
-
-            // Enable JavaScript
-            webView.settings.javaScriptEnabled = true
-
-            // Set WebViewClient to handle URL redirection
-            webView.webViewClient = MyWebViewClient()
-
-            // Load YouTube URL
-            webView.loadUrl("https://www.youtube.com")
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Error initializing WebView", e)
-        }
+        highlightedText = findViewById(R.id.highlighted_text)
+        setHighlightedText(highlightedText, "Click Here")
     }
 
-    private class MyWebViewClient : WebViewClient() {
-        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-            request?.url?.let {
-                view?.loadUrl(it.toString())
-                return true
+    private fun setHighlightedText(textView: TextView, text: String) {
+        val spannableString = SpannableString(text)
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                val url = this@MainActivity::class.java
+                    .getDeclaredField("highlightedText")
+                    .getAnnotation(HighLightClick::class.java)?.url
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(intent)
             }
-            return super.shouldOverrideUrlLoading(view, request)
         }
+
+        spannableString.setSpan(clickableSpan, 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        textView.text = spannableString
+        textView.movementMethod = LinkMovementMethod.getInstance()
     }
 }
